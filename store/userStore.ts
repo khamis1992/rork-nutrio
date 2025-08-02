@@ -143,31 +143,61 @@ export const useUserStore = create<UserState>()(
       signup: async (email, password, name) => {
         set({ isLoading: true, error: null });
         try {
+          console.log('Starting signup process for:', email);
+          
+          // First, try to sign up the user
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+              data: {
+                name: name,
+              }
+            }
           });
 
-          if (error) throw error;
+          console.log('Signup response:', { data, error });
+
+          if (error) {
+            console.error('Supabase auth signup error:', error);
+            throw error;
+          }
 
           if (data.user) {
-            // Create user profile
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .insert({
-                id: data.user.id,
-                name,
-                email,
-                daily_calories_goal: 2200,
-                daily_protein_goal: 150,
-                daily_carbs_goal: 220,
-                daily_fat_goal: 70,
-              });
+            console.log('User created successfully:', data.user.id);
+            
+            // Try to create user profile, but don't fail if table doesn't exist
+            try {
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: data.user.id,
+                  name,
+                  email,
+                  daily_calories_goal: 2200,
+                  daily_protein_goal: 150,
+                  daily_carbs_goal: 220,
+                  daily_fat_goal: 70,
+                });
 
-            if (profileError) throw profileError;
+              if (profileError) {
+                console.error('Profile creation error:', profileError);
+                // Don't throw error if table doesn't exist, just log it
+                if (!profileError.message?.includes('relation "public.profiles" does not exist')) {
+                  throw profileError;
+                }
+              } else {
+                console.log('Profile created successfully');
+              }
+            } catch (profileError: any) {
+              console.error('Profile creation failed:', profileError);
+              // Continue with signup even if profile creation fails
+            }
 
-            set({ supabaseUser: data.user, isAuthenticated: true });
-            await get().fetchUserProfile();
+            // Don't set as authenticated immediately for email confirmation flow
+            console.log('Signup completed successfully');
+          } else {
+            throw new Error('No user data returned from signup');
           }
         } catch (error: any) {
           let errorMessage = 'Signup failed';

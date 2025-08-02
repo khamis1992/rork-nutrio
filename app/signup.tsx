@@ -5,10 +5,14 @@ import { theme } from '@/constants/theme';
 import { useUserStore } from '@/store/userStore';
 import { Button } from '@/components/Button';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { useLanguageStore } from '@/store/languageStore';
+import { translations } from '@/constants/translations';
 
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, isLoading } = useUserStore();
+  const { language } = useLanguageStore();
+  const t = translations[language];
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,39 +27,57 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     // Validation
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error', 
+        language === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill in all fields'
+      );
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error', 
+        language === 'ar' ? 'يرجى إدخال عنوان بريد إلكتروني صحيح' : 'Please enter a valid email address'
+      );
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error', 
+        language === 'ar' ? 'كلمات المرور غير متطابقة' : 'Passwords do not match'
+      );
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error', 
+        language === 'ar' ? 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters'
+      );
       return;
     }
 
     try {
       await signup(email.trim(), password, name.trim());
       Alert.alert(
-        'Account Created',
-        'Please check your email to verify your account before logging in.',
+        language === 'ar' ? 'تم إنشاء الحساب' : 'Account Created',
+        language === 'ar' 
+          ? 'يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك قبل تسجيل الدخول.'
+          : 'Please check your email to verify your account before logging in.',
         [
           {
-            text: 'OK',
+            text: language === 'ar' ? 'موافق' : 'OK',
             onPress: () => router.replace('/login'),
           },
         ]
       );
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.message || 'Failed to create account');
+      console.error('Signup error in component:', error);
+      Alert.alert(
+        language === 'ar' ? 'فشل في إنشاء الحساب' : 'Signup Failed', 
+        error.message || (language === 'ar' ? 'فشل في إنشاء الحساب' : 'Failed to create account')
+      );
     }
   };
 
@@ -76,14 +98,14 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started</Text>
+          <Text style={styles.title}>{language === 'ar' ? 'إنشاء حساب' : 'Create Account'}</Text>
+          <Text style={styles.subtitle}>{language === 'ar' ? 'سجل للبدء' : 'Sign up to get started'}</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Full Name</Text>
+            <Text style={styles.inputLabel}>{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Enter your full name"
+              style={[styles.input, language === 'ar' && styles.rtlInput]}
+              placeholder={language === 'ar' ? 'أدخل اسمك الكامل' : 'Enter your full name'}
               value={name}
               onChangeText={setName}
               autoComplete="name"
@@ -93,10 +115,10 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
+            <Text style={styles.inputLabel}>{language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder={language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -108,11 +130,11 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
+            <Text style={styles.inputLabel}>{language === 'ar' ? 'كلمة المرور' : 'Password'}</Text>
             <View style={styles.passwordContainer}>
               <TextInput
                 style={styles.passwordInput}
-                placeholder="Create a password (min 6 characters)"
+                placeholder={language === 'ar' ? 'أنشئ كلمة مرور (6 أحرف على الأقل)' : 'Create a password (min 6 characters)'}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -135,10 +157,10 @@ export default function SignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Confirm Password</Text>
+            <Text style={styles.inputLabel}>{language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Confirm your password"
+              placeholder={language === 'ar' ? 'أكد كلمة المرور' : 'Confirm your password'}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showPassword}
@@ -150,14 +172,21 @@ export default function SignupScreen() {
 
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
-              By signing up, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              {language === 'ar' 
+                ? 'بالتسجيل، فإنك توافق على '
+                : 'By signing up, you agree to our '}
+              <Text style={styles.termsLink}>
+                {language === 'ar' ? 'شروط الخدمة' : 'Terms of Service'}
+              </Text>
+              {language === 'ar' ? ' و ' : ' and '}
+              <Text style={styles.termsLink}>
+                {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}
+              </Text>
             </Text>
           </View>
 
           <Button
-            title="Sign Up"
+            title={language === 'ar' ? 'إنشاء حساب' : 'Sign Up'}
             onPress={handleSignup}
             style={styles.signupButton}
             isLoading={isLoading}
@@ -166,7 +195,7 @@ export default function SignupScreen() {
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{language === 'ar' ? 'أو' : 'or'}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -181,9 +210,9 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
+          <Text style={styles.footerText}>{language === 'ar' ? 'لديك حساب بالفعل؟' : 'Already have an account?'}</Text>
           <Pressable onPress={() => router.push('/login')} disabled={isLoading}>
-            <Text style={[styles.loginText, isLoading && styles.disabledText]}>Log In</Text>
+            <Text style={[styles.loginText, isLoading && styles.disabledText]}>{language === 'ar' ? 'تسجيل الدخول' : 'Log In'}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -332,5 +361,9 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     opacity: 0.6,
+  },
+  rtlInput: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
