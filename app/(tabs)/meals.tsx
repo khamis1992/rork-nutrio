@@ -1,61 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TextInput, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, TextInput, RefreshControl, FlatList } from 'react-native';
 import { theme } from '@/constants/theme';
-import { useMealsStore } from '@/store/mealsStore';
-import { CategoryFilter } from '@/components/CategoryFilter';
-import { MealTimeSection } from '@/components/MealTimeSection';
+import { useRestaurantsStore } from '@/store/restaurantsStore';
+import { RestaurantCard } from '@/components/RestaurantCard';
 import { Search } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function MealsScreen() {
   const { 
-    meals, 
-    selectedCategory, 
-    selectedMealTime,
-    setSelectedCategory, 
-    setSelectedMealTime,
-    getMealsByTime,
-    fetchMeals, 
+    restaurants, 
+    fetchRestaurants, 
+    toggleFavorite,
     isLoading, 
     error 
-  } = useMealsStore();
+  } = useRestaurantsStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  
-  const mealTimes = ['breakfast', 'lunch', 'dinner'];
 
   useEffect(() => {
-    // Fetch meals when component mounts
-    fetchMeals();
-  }, [fetchMeals]);
+    // Fetch restaurants when component mounts
+    fetchRestaurants();
+  }, [fetchRestaurants]);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchMeals();
+      await fetchRestaurants();
     } catch (error) {
-      console.error('Error refreshing meals:', error);
+      console.error('Error refreshing restaurants:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchMeals]);
+  }, [fetchRestaurants]);
 
-  // Get meals for each meal time and filter by category and search
-  const getFilteredMealsForTime = (mealTime: string) => {
-    const mealsForTime = getMealsByTime(mealTime);
-    return mealsForTime.filter(meal => {
-      const matchesCategory = selectedCategory === 'all' || 
-        meal.category.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase());
-      
-      const matchesSearch = searchQuery === '' || 
-        meal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meal.restaurant.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meal.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      
-      return matchesCategory && matchesSearch;
-    });
+  // Filter restaurants by search query
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const matchesSearch = searchQuery === '' || 
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (restaurant.cuisine_type && restaurant.cuisine_type.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesSearch;
+  });
+
+  const handleRestaurantPress = (restaurantId: string) => {
+    router.push(`/restaurant/${restaurantId}`);
   };
+
+  const renderRestaurant = ({ item }: { item: typeof restaurants[0] }) => (
+    <View style={styles.restaurantItem}>
+      <RestaurantCard
+        restaurant={item}
+        onPress={() => handleRestaurantPress(item.id)}
+        onToggleFavorite={() => toggleFavorite(item.id)}
+      />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -63,52 +62,45 @@ export default function MealsScreen() {
         <Search size={20} color={theme.colors.textLight} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث عن الوجبات أو المطاعم أو المكونات"
+          placeholder="ابحث عن المطاعم أو نوع المأكولات"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={theme.colors.textLight}
         />
       </View>
 
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>خطأ في تحميل المطاعم</Text>
+          <Text style={styles.errorSubtext}>{error}</Text>
+        </View>
+      )}
 
-      <ScrollView 
-        style={styles.mealsContainer}
-        contentContainerStyle={styles.mealsContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>خطأ في تحميل الوجبات</Text>
-            <Text style={styles.errorSubtext}>{error}</Text>
-          </View>
-        )}
-
-        {isLoading && meals.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>جاري تحميل الوجبات...</Text>
-          </View>
-        ) : (
-          mealTimes.map((mealTime) => {
-            const mealsForTime = getFilteredMealsForTime(mealTime);
-            return (
-              <MealTimeSection
-                key={mealTime}
-                mealTime={mealTime}
-                meals={mealsForTime}
-                isSelected={selectedMealTime === mealTime}
-                onPress={() => setSelectedMealTime(selectedMealTime === mealTime ? '' : mealTime)}
-              />
-            );
-          })
-        )}
-      </ScrollView>
+      {isLoading && restaurants.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>جاري تحميل المطاعم...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredRestaurants}
+          renderItem={renderRestaurant}
+          keyExtractor={(item) => item.id}
+          numColumns={1}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.restaurantsContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            !isLoading ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>لا توجد مطاعم</Text>
+                <Text style={styles.emptySubtext}>جرب البحث بكلمات مختلفة</Text>
+              </View>
+            ) : null
+          }
+        />
+      )}
     </View>
   );
 }
@@ -138,11 +130,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     textAlign: 'right',
   },
-  mealsContainer: {
-    flex: 1,
-  },
-  mealsContent: {
+  restaurantsContent: {
     padding: theme.spacing.md,
+  },
+  restaurantItem: {
+    marginBottom: theme.spacing.md,
+    alignItems: 'center',
   },
   loadingContainer: {
     alignItems: 'center',

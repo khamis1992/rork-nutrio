@@ -80,11 +80,10 @@ export const RestaurantCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
+    width: '100%',
     backgroundColor: theme.colors.white,
     borderRadius: theme.borderRadius.lg,
     overflow: 'hidden',
-    marginRight: theme.spacing.md,
     ...theme.shadows.md,
   },
   pressed: {
