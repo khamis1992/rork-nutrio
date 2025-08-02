@@ -5,14 +5,14 @@ import { theme } from '@/constants/theme';
 import { useUserStore } from '@/store/userStore';
 import { Button } from '@/components/Button';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { useLanguageStore } from '@/store/languageStore';
+import { useLanguage } from '@/store/languageStore';
 import { translations } from '@/constants/translations';
 
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, isLoading } = useUserStore();
-  const { language } = useLanguageStore();
-  const t = translations[language];
+  const { language } = useLanguage();
+  const t = translations[language as keyof typeof translations];
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
