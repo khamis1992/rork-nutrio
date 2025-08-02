@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSizes.lg,
     fontWeight: theme.typography.fontWeights.semibold,
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   chartContainer: {
     height: 180,
