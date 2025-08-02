@@ -6,12 +6,14 @@ import { theme } from "@/constants/theme";
 import { useMealsStore } from "@/store/mealsStore";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import { useUserStore } from "@/store/userStore";
+import { useLanguage } from "@/store/languageStore";
 
 export default function TabLayout() {
   const router = useRouter();
   const { fetchMeals } = useMealsStore();
   const { fetchPlans } = useSubscriptionStore();
   const { initializeUser, user } = useUserStore();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Initialize app data when tab layout mounts
@@ -85,28 +87,28 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t('home'),
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="meals"
         options={{
-          title: "Restaurants",
+          title: t('restaurants'),
           tabBarIcon: ({ color }) => <Utensils size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="my-plan"
         options={{
-          title: "My Plan",
+          title: t('myPlan'),
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="progress"
         options={{
-          title: "Progress",
+          title: t('progress'),
           tabBarIcon: ({ color }) => <BarChart2 size={24} color={color} />,
         }}
       />

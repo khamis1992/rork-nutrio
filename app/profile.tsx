@@ -1,28 +1,58 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, Alert, ActionSheetIOS, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { useUserStore } from '@/store/userStore';
 import { useSubscriptionStore } from '@/store/subscriptionStore';
+import { useLanguage } from '@/store/languageStore';
 import { Button } from '@/components/Button';
-import { LogOut, Settings, CreditCard, Award, Bell, HelpCircle } from 'lucide-react-native';
+import { LogOut, Settings, CreditCard, Award, Bell, HelpCircle, Globe } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout, error: userError } = useUserStore();
   const { subscription, cancelSubscription, error: subscriptionError } = useSubscriptionStore();
+  const { t, language, setLanguage, isRTL } = useLanguage();
+
+  const handleLanguageChange = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [t('cancel'), t('english'), t('arabic')],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            setLanguage('en');
+          } else if (buttonIndex === 2) {
+            setLanguage('ar');
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        t('language'),
+        '',
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('english'), onPress: () => setLanguage('en') },
+          { text: t('arabic'), onPress: () => setLanguage('ar') },
+        ]
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t('logoutTitle'),
+      t('logoutMessage'),
       [
         {
-          text: "Cancel",
+          text: t('cancel'),
           style: "cancel"
         },
         { 
-          text: "Logout", 
+          text: t('logout'), 
           onPress: () => {
             logout();
             router.replace('/login');
@@ -34,22 +64,22 @@ export default function ProfileScreen() {
 
   const handleCancelSubscription = () => {
     Alert.alert(
-      "Cancel Subscription",
-      "Are you sure you want to cancel your subscription?",
+      t('cancelSubscriptionTitle'),
+      t('cancelSubscriptionMessage'),
       [
         {
-          text: "No",
+          text: t('no'),
           style: "cancel"
         },
         { 
-          text: "Yes", 
+          text: t('yes'), 
           onPress: async () => {
             try {
               await cancelSubscription();
-              Alert.alert("Success", "Your subscription has been canceled");
+              Alert.alert(t('success'), t('subscriptionCanceled'));
             } catch (error: any) {
-              const errorMessage = error?.message || 'Failed to cancel subscription';
-              Alert.alert("Error", errorMessage);
+              const errorMessage = error?.message || t('failedToCancelSubscription');
+              Alert.alert(t('error'), errorMessage);
             }
           },
           style: "destructive"
@@ -61,17 +91,17 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={styles.loginContainer}>
-        <Text style={styles.loginTitle}>Not Logged In</Text>
+        <Text style={styles.loginTitle}>{t('notLoggedIn')}</Text>
         <Text style={styles.loginText}>
-          Please log in to access your profile
+          {t('pleaseLogin')}
         </Text>
         <Button
-          title="Login"
+          title={t('login')}
           onPress={() => router.push('/login')}
           style={styles.loginButton}
         />
         <Button
-          title="Sign Up"
+          title={t('signUp')}
           onPress={() => router.push('/signup')}
           variant="outline"
           style={styles.signupButton}
@@ -101,7 +131,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Subscription</Text>
+        <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>{t('subscription')}</Text>
         <View style={styles.card}>
           {subscription.active ? (
             <>
@@ -111,19 +141,19 @@ export default function ProfileScreen() {
                   {subscription.startDate} to {subscription.endDate}
                 </Text>
                 <View style={styles.planFeatures}>
-                  <Text style={styles.planFeature}>• {subscription.mealsRemaining} meals remaining</Text>
-                  <Text style={styles.planFeature}>• {subscription.gymAccess ? 'Gym access included' : 'No gym access'}</Text>
+                  <Text style={[styles.planFeature, isRTL && styles.rtlText]}>• {subscription.mealsRemaining} {t('mealsRemaining')}</Text>
+                  <Text style={[styles.planFeature, isRTL && styles.rtlText]}>• {subscription.gymAccess ? t('gymAccessIncluded') : t('noGymAccess')}</Text>
                 </View>
               </View>
               <View style={styles.subscriptionActions}>
                 <Button
-                  title="Manage Plan"
+                  title={t('managePlan')}
                   onPress={() => router.push('/my-plan')}
                   size="small"
                   style={styles.manageButton}
                 />
                 <Button
-                  title="Cancel"
+                  title={t('cancel')}
                   onPress={handleCancelSubscription}
                   variant="outline"
                   size="small"
@@ -133,9 +163,9 @@ export default function ProfileScreen() {
             </>
           ) : (
             <View style={styles.noSubscription}>
-              <Text style={styles.noSubscriptionText}>No active subscription</Text>
+              <Text style={[styles.noSubscriptionText, isRTL && styles.rtlText]}>{t('noActiveSubscription')}</Text>
               <Button
-                title="Subscribe Now"
+                title={t('subscribeNow')}
                 onPress={() => router.push('/subscription')}
                 size="small"
                 style={styles.subscribeButton}
@@ -146,40 +176,47 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Settings</Text>
+        <Text style={[styles.sectionTitle, isRTL && styles.rtlText]}>{t('settings')}</Text>
         <View style={styles.card}>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]}>
             <Settings size={20} color={theme.colors.text} />
-            <Text style={styles.menuItemText}>Account Settings</Text>
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('accountSettings')}</Text>
           </Pressable>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]}>
             <CreditCard size={20} color={theme.colors.text} />
-            <Text style={styles.menuItemText}>Payment Methods</Text>
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('paymentMethods')}</Text>
           </Pressable>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]}>
             <Bell size={20} color={theme.colors.text} />
-            <Text style={styles.menuItemText}>Notifications</Text>
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('notifications')}</Text>
           </Pressable>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]}>
             <Award size={20} color={theme.colors.text} />
-            <Text style={styles.menuItemText}>Achievements</Text>
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('achievements')}</Text>
           </Pressable>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]}>
             <HelpCircle size={20} color={theme.colors.text} />
-            <Text style={styles.menuItemText}>Help & Support</Text>
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('helpSupport')}</Text>
+          </Pressable>
+          <Pressable style={[styles.menuItem, isRTL && styles.rtlMenuItem]} onPress={handleLanguageChange}>
+            <Globe size={20} color={theme.colors.text} />
+            <Text style={[styles.menuItemText, isRTL && styles.rtlText]}>{t('language')}</Text>
+            <Text style={[styles.languageValue, isRTL && styles.rtlText]}>
+              {language === 'ar' ? t('arabic') : t('english')}
+            </Text>
           </Pressable>
         </View>
       </View>
 
       <View style={styles.logoutButtonContainer}>
         <Button
-          title="Logout"
+          title={t('logout')}
           onPress={handleLogout}
           variant="outline"
-          style={styles.logoutButton}
+          style={[styles.logoutButton, isRTL && styles.rtlLogoutButton]}
           textStyle={styles.logoutButtonText}
         />
-        <View style={styles.logoutIcon}>
+        <View style={[styles.logoutIcon, isRTL && styles.rtlLogoutIcon]}>
           <LogOut size={18} color={theme.colors.error} />
         </View>
       </View>
@@ -345,5 +382,25 @@ const styles = StyleSheet.create({
     color: theme.colors.error,
     fontSize: theme.typography.fontSizes.sm,
     textAlign: 'center',
+  },
+  rtlText: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  rtlMenuItem: {
+    flexDirection: 'row-reverse',
+  },
+  languageValue: {
+    fontSize: theme.typography.fontSizes.sm,
+    color: theme.colors.textLight,
+    marginLeft: 'auto',
+  },
+  rtlLogoutButton: {
+    paddingLeft: theme.spacing.xl,
+    paddingRight: theme.spacing.md,
+  },
+  rtlLogoutIcon: {
+    left: theme.spacing.md,
+    right: 'auto',
   },
 });

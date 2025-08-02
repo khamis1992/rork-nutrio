@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { useUserStore } from "@/store/userStore";
+import { LanguageProvider, useLanguage } from "@/store/languageStore";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -43,7 +44,9 @@ export default function RootLayout() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <RootLayoutNav />
+        <LanguageProvider>
+          <RootLayoutNav />
+        </LanguageProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );
@@ -51,6 +54,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { initializeUser } = useUserStore();
+  const { t } = useLanguage();
 
   useEffect(() => {
     initializeUser();
@@ -108,6 +112,13 @@ function RootLayoutNav() {
           options={{ 
             title: "Sign Up",
             headerShown: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="profile" 
+          options={{ 
+            title: t('profile'),
+            headerBackTitle: "Back",
           }} 
         />
       </Stack>
