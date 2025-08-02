@@ -21,7 +21,6 @@ export const translations = {
     gymAccessIncluded: 'Gym access included',
     noGymAccess: 'No gym access',
     managePlan: 'Manage Plan',
-    cancel: 'Cancel',
     noActiveSubscription: 'No active subscription',
     subscribeNow: 'Subscribe Now',
     
@@ -77,7 +76,6 @@ export const translations = {
     gymAccessIncluded: 'الوصول للنادي الرياضي متضمن',
     noGymAccess: 'لا يوجد وصول للنادي الرياضي',
     managePlan: 'إدارة الخطة',
-    cancel: 'إلغاء',
     noActiveSubscription: 'لا يوجد اشتراك نشط',
     subscribeNow: 'اشترك الآن',
     
