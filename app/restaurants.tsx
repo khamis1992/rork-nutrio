@@ -62,7 +62,7 @@ export default function RestaurantsScreen() {
         <Search size={20} color={theme.colors.textLight} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث عن المطاعم أو نوع المأكولات"
+          placeholder="Search restaurants or cuisine types"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={theme.colors.textLight}
@@ -71,14 +71,14 @@ export default function RestaurantsScreen() {
 
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>خطأ في تحميل المطاعم</Text>
+          <Text style={styles.errorText}>Error loading restaurants</Text>
           <Text style={styles.errorSubtext}>{error}</Text>
         </View>
       )}
 
       {isLoading && restaurants.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>جاري تحميل المطاعم...</Text>
+          <Text style={styles.loadingText}>Loading restaurants...</Text>
         </View>
       ) : (
         <FlatList
@@ -94,8 +94,8 @@ export default function RestaurantsScreen() {
           ListEmptyComponent={
             !isLoading ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>لا توجد مطاعم</Text>
-                <Text style={styles.emptySubtext}>جرب البحث بكلمات مختلفة</Text>
+                <Text style={styles.emptyText}>No restaurants found</Text>
+                <Text style={styles.emptySubtext}>Try searching with different keywords</Text>
               </View>
             ) : null
           }
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: theme.typography.fontSizes.md,
     color: theme.colors.text,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   restaurantsContent: {
     padding: theme.spacing.md,
