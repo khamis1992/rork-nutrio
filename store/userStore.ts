@@ -85,7 +85,16 @@ export const useUserStore = create<UserState>()(
           }
         } catch (error: any) {
           console.error('Error initializing user:', error);
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to initialize user';
+          let errorMessage = 'Failed to initialize user';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Detailed error:', JSON.stringify(error, null, 2));
           set({ 
             error: errorMessage,
@@ -113,7 +122,16 @@ export const useUserStore = create<UserState>()(
             await get().fetchNutritionProgress();
           }
         } catch (error: any) {
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Login failed';
+          let errorMessage = 'Login failed';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Login error details:', JSON.stringify(error, null, 2));
           set({ error: errorMessage });
           throw new Error(errorMessage);
@@ -152,7 +170,16 @@ export const useUserStore = create<UserState>()(
             await get().fetchUserProfile();
           }
         } catch (error: any) {
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Signup failed';
+          let errorMessage = 'Signup failed';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Signup error details:', JSON.stringify(error, null, 2));
           set({ error: errorMessage });
           throw new Error(errorMessage);
@@ -172,7 +199,16 @@ export const useUserStore = create<UserState>()(
           });
         } catch (error: any) {
           console.error('Logout error:', error);
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Logout failed';
+          let errorMessage = 'Logout failed';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Detailed error:', JSON.stringify(error, null, 2));
           set({ error: errorMessage });
         } finally {
@@ -206,7 +242,16 @@ export const useUserStore = create<UserState>()(
           await get().fetchUserProfile();
         } catch (error: any) {
           console.error('Update user error:', error);
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to update user';
+          let errorMessage = 'Failed to update user';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Detailed error:', JSON.stringify(error, null, 2));
           set({ error: errorMessage });
           throw new Error(errorMessage);
@@ -386,7 +431,16 @@ export const useUserStore = create<UserState>()(
           console.error('Log nutrition error:', error);
           // Don't throw error for missing table, just log it
           if (!error.message?.includes('relation "public.nutrition_logs" does not exist')) {
-            const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to log nutrition';
+            let errorMessage = 'Failed to log nutrition';
+            if (typeof error === 'string') {
+              errorMessage = error;
+            } else if (error?.message) {
+              errorMessage = error.message;
+            } else if (error?.error_description) {
+              errorMessage = error.error_description;
+            } else if (error?.details) {
+              errorMessage = error.details;
+            }
             console.error('Detailed error:', JSON.stringify(error, null, 2));
             throw new Error(errorMessage);
           }

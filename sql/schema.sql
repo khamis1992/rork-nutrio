@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Create nutrition_logs table
-CREATE TABLE IF NOT EXISTS nutrition_logs (
+CREATE TABLE IF NOT EXISTS public.nutrition_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   date DATE NOT NULL,

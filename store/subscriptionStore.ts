@@ -46,7 +46,16 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ plans, error: null });
         } catch (error: any) {
           console.error('Error fetching plans:', error);
-          const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to fetch plans';
+          let errorMessage = 'Failed to fetch plans';
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.error_description) {
+            errorMessage = error.error_description;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          }
           console.error('Detailed error:', JSON.stringify(error, null, 2));
           set({ error: errorMessage });
         }
@@ -217,7 +226,16 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             console.log('subscriptions table does not exist, using mock subscription');
             set({ subscription: mockSubscription, error: null });
           } else {
-            const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to create subscription';
+            let errorMessage = 'Failed to create subscription';
+            if (typeof error === 'string') {
+              errorMessage = error;
+            } else if (error?.message) {
+              errorMessage = error.message;
+            } else if (error?.error_description) {
+              errorMessage = error.error_description;
+            } else if (error?.details) {
+              errorMessage = error.details;
+            }
             console.error('Detailed error:', JSON.stringify(error, null, 2));
             set({ error: errorMessage });
             throw new Error(errorMessage);
@@ -261,7 +279,16 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           console.error('Error canceling subscription:', error);
           // Don't throw error for missing table
           if (!error.message?.includes('relation "public.subscriptions" does not exist')) {
-            const errorMessage = error?.message || error?.error_description || error?.details || 'Failed to cancel subscription';
+            let errorMessage = 'Failed to cancel subscription';
+            if (typeof error === 'string') {
+              errorMessage = error;
+            } else if (error?.message) {
+              errorMessage = error.message;
+            } else if (error?.error_description) {
+              errorMessage = error.error_description;
+            } else if (error?.details) {
+              errorMessage = error.details;
+            }
             console.error('Detailed error:', JSON.stringify(error, null, 2));
             set({ error: errorMessage });
             throw new Error(errorMessage);

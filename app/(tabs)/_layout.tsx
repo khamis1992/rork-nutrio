@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { TouchableOpacity, Image } from "react-native";
-import { Home, Utensils, Calendar, BarChart2, User } from "lucide-react-native";
+import { Home, Utensils, Calendar, BarChart2 } from "lucide-react-native";
 import { theme } from "@/constants/theme";
 import { useMealsStore } from "@/store/mealsStore";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
@@ -30,22 +30,12 @@ export default function TabLayout() {
 
   const ProfileIcon = () => {
     if (!user) {
-      return (
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/profile')}
-          style={{
-            marginRight: 16,
-            padding: 4,
-          }}
-        >
-          <User size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-      );
+      return null;
     }
 
     return (
       <TouchableOpacity
-        onPress={() => router.push('/(tabs)/profile')}
+        onPress={() => router.push('/profile')}
         style={{
           marginRight: 16,
           padding: 4,
@@ -102,7 +92,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="meals"
         options={{
-          title: "Meals",
+          title: "Restaurants",
           tabBarIcon: ({ color }) => <Utensils size={24} color={color} />,
         }}
       />

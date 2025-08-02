@@ -75,9 +75,8 @@ export default function HomeScreen() {
   };
 
   const handleViewAllRestaurants = () => {
-    // Navigate to all restaurants screen (placeholder for now)
-    console.log('View all restaurants pressed');
-    // router.push('/restaurants');
+    // Navigate to all restaurants screen
+    router.push('/restaurants');
   };
 
   const handleSubscribePress = () => {
