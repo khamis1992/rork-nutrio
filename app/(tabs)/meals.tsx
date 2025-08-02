@@ -1,139 +1,112 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, TextInput, RefreshControl, FlatList } from 'react-native';
 import { theme } from '@/constants/theme';
-import { useMealsStore } from '@/store/mealsStore';
-import { MealTimeSection } from '@/components/MealTimeSection';
-import { Calendar } from 'lucide-react-native';
+import { useRestaurantsStore } from '@/store/restaurantsStore';
+import { RestaurantCard } from '@/components/RestaurantCard';
+import { Search } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function MealsScreen() {
   const { 
-    meals, 
-    fetchMeals,
+    restaurants, 
+    fetchRestaurants, 
+    toggleFavorite,
     isLoading, 
     error 
-  } = useMealsStore();
-  const [selectedMealTime, setSelectedMealTime] = useState<string>('breakfast');
+  } = useRestaurantsStore();
+  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    // Fetch meals when component mounts
-    fetchMeals();
-  }, [fetchMeals]);
+    // Fetch restaurants when component mounts
+    fetchRestaurants();
+  }, [fetchRestaurants]);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchMeals();
+      await fetchRestaurants();
     } catch (error) {
-      console.error('Error refreshing meals:', error);
+      console.error('Error refreshing restaurants:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchMeals]);
+  }, [fetchRestaurants]);
 
-  // Group meals by meal time
-  const mealsByTime = {
-    breakfast: meals.filter(meal => 
-      meal.category?.some(cat => 
-        cat.toLowerCase().includes('breakfast') || 
-        cat.toLowerCase().includes('فطور')
-      ) || Math.random() > 0.7 // Random assignment for demo
-    ),
-    lunch: meals.filter(meal => 
-      meal.category?.some(cat => 
-        cat.toLowerCase().includes('lunch') || 
-        cat.toLowerCase().includes('غداء')
-      ) || Math.random() > 0.5 // Random assignment for demo
-    ),
-    dinner: meals.filter(meal => 
-      meal.category?.some(cat => 
-        cat.toLowerCase().includes('dinner') || 
-        cat.toLowerCase().includes('عشاء')
-      ) || Math.random() > 0.3 // Random assignment for demo
-    ),
+  // Filter restaurants by search query
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    const matchesSearch = searchQuery === '' || 
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (restaurant.cuisine_type && restaurant.cuisine_type.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesSearch;
+  });
+
+  const handleRestaurantPress = (restaurantId: string) => {
+    router.push(`/restaurant/${restaurantId}`);
   };
 
-  // Ensure each meal time has at least some meals for demo
-  if (mealsByTime.breakfast.length === 0 && meals.length > 0) {
-    mealsByTime.breakfast = meals.slice(0, Math.ceil(meals.length / 3));
-  }
-  if (mealsByTime.lunch.length === 0 && meals.length > 0) {
-    mealsByTime.lunch = meals.slice(Math.ceil(meals.length / 3), Math.ceil(2 * meals.length / 3));
-  }
-  if (mealsByTime.dinner.length === 0 && meals.length > 0) {
-    mealsByTime.dinner = meals.slice(Math.ceil(2 * meals.length / 3));
-  }
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    return today.toLocaleDateString('ar-SA', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  const renderRestaurant = ({ item }: { item: typeof restaurants[0] }) => (
+    <View style={styles.restaurantItem}>
+      <RestaurantCard
+        restaurant={item}
+        onPress={() => handleRestaurantPress(item.id)}
+        onToggleFavorite={() => toggleFavorite(item.id)}
+      />
+    </View>
+  );
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.dateContainer}>
-          <Calendar size={20} color={theme.colors.primary} />
-          <Text style={styles.dateText}>{getCurrentDate()}</Text>
-        </View>
-        <Text style={styles.title}>وجبات اليوم</Text>
-        <Text style={styles.subtitle}>اختر وجباتك المفضلة لهذا اليوم</Text>
+        <Text style={styles.title}>المطاعم</Text>
+        <Text style={styles.subtitle}>اكتشف أفضل المطاعم والوجبات</Text>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <Search size={20} color={theme.colors.textLight} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="ابحث عن المطاعم أو نوع المأكولات"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor={theme.colors.textLight}
+        />
       </View>
 
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>خطأ في تحميل الوجبات</Text>
+          <Text style={styles.errorText}>خطأ في تحميل المطاعم</Text>
           <Text style={styles.errorSubtext}>{error}</Text>
         </View>
       )}
 
-      {isLoading && meals.length === 0 ? (
+      {isLoading && restaurants.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>جاري تحميل الوجبات...</Text>
+          <Text style={styles.loadingText}>جاري تحميل المطاعم...</Text>
         </View>
       ) : (
-        <View style={styles.mealsContainer}>
-          <MealTimeSection
-            mealTime="breakfast"
-            meals={mealsByTime.breakfast}
-            isSelected={selectedMealTime === 'breakfast'}
-            onPress={() => setSelectedMealTime(selectedMealTime === 'breakfast' ? '' : 'breakfast')}
-          />
-          
-          <MealTimeSection
-            mealTime="lunch"
-            meals={mealsByTime.lunch}
-            isSelected={selectedMealTime === 'lunch'}
-            onPress={() => setSelectedMealTime(selectedMealTime === 'lunch' ? '' : 'lunch')}
-          />
-          
-          <MealTimeSection
-            mealTime="dinner"
-            meals={mealsByTime.dinner}
-            isSelected={selectedMealTime === 'dinner'}
-            onPress={() => setSelectedMealTime(selectedMealTime === 'dinner' ? '' : 'dinner')}
-          />
-        </View>
+        <FlatList
+          data={filteredRestaurants}
+          renderItem={renderRestaurant}
+          keyExtractor={(item) => item.id}
+          numColumns={1}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.restaurantsContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            !isLoading ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>لا توجد مطاعم</Text>
+                <Text style={styles.emptySubtext}>جرب البحث بكلمات مختلفة</Text>
+              </View>
+            ) : null
+          }
+        />
       )}
-
-      {!isLoading && meals.length === 0 && (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>لا توجد وجبات متاحة</Text>
-          <Text style={styles.emptySubtext}>سيتم إضافة وجبات جديدة قريباً</Text>
-        </View>
-      )}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -148,17 +121,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     ...theme.shadows.sm,
   },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-    gap: theme.spacing.xs,
-  },
-  dateText: {
-    fontSize: theme.typography.fontSizes.sm,
-    color: theme.colors.textLight,
-    textAlign: 'right',
-  },
   title: {
     fontSize: theme.typography.fontSizes.xl,
     fontWeight: theme.typography.fontWeights.bold,
@@ -171,8 +133,32 @@ const styles = StyleSheet.create({
     color: theme.colors.textLight,
     textAlign: 'right',
   },
-  mealsContainer: {
-    paddingBottom: theme.spacing.xl,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.full,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    ...theme.shadows.sm,
+  },
+  searchIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: theme.typography.fontSizes.md,
+    color: theme.colors.text,
+    textAlign: 'right',
+  },
+  restaurantsContent: {
+    padding: theme.spacing.md,
+  },
+  restaurantItem: {
+    marginBottom: theme.spacing.md,
+    alignItems: 'center',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -210,10 +196,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: theme.spacing.xxl,
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    marginHorizontal: theme.spacing.md,
-    ...theme.shadows.sm,
   },
   emptyText: {
     fontSize: theme.typography.fontSizes.lg,
