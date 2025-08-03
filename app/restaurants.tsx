@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,14 +11,18 @@ import {
 import { Stack } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useLanguage } from '@/store/languageStore';
-import { restaurants } from '@/mocks/restaurants';
+import { useRestaurantsStore } from '@/store/restaurantsStore';
 import { RestaurantCard } from '@/components/RestaurantCard';
 import { colors } from '@/constants/colors';
 
 export default function RestaurantsScreen() {
   const { t, isRTL } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { restaurants, isLoading, fetchRestaurants, toggleFavorite } = useRestaurantsStore();
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
 
   const filteredRestaurants = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -29,12 +33,15 @@ export default function RestaurantsScreen() {
     return restaurants.filter(
       (restaurant) =>
         restaurant.name.toLowerCase().includes(query) ||
-        restaurant.cuisineType.toLowerCase().includes(query)
+        (restaurant.cuisine_type && restaurant.cuisine_type.toLowerCase().includes(query))
     );
-  }, [searchQuery]);
+  }, [searchQuery, restaurants]);
 
   const renderRestaurant = ({ item }: { item: typeof restaurants[0] }) => (
-    <RestaurantCard restaurant={item} />
+    <RestaurantCard 
+      restaurant={item} 
+      onToggleFavorite={() => toggleFavorite(item.id)}
+    />
   );
 
   const renderEmptyState = () => (
