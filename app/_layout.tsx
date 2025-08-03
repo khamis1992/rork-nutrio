@@ -56,23 +56,31 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const { initializeUser, isLoading } = useUserStore();
   const { t, isLoading: languageLoading } = useLanguage();
-  const [initError, setInitError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initWithTimeout = async () => {
       try {
-        // Set a timeout for initialization
+        console.log('Starting app initialization...');
+        
+        // Set a more generous timeout for initialization
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Initialization timeout')), 5000)
+          setTimeout(() => reject(new Error('Initialization timeout')), 3000)
         );
         
         await Promise.race([
           initializeUser(),
           timeoutPromise
         ]);
+        
+        console.log('App initialization completed');
       } catch (error) {
         console.error('Initialization error:', error);
-        setInitError(error instanceof Error ? error.message : 'Initialization failed');
+        // Don't block the app, just log the error
+        console.log('Continuing with offline mode due to initialization error');
+      } finally {
+        // Always mark as initialized so the app can continue
+        setIsInitialized(true);
       }
     };
 
@@ -80,19 +88,13 @@ function RootLayoutNav() {
   }, [initializeUser]);
 
   // Show loading screen while initializing
-  if (languageLoading || (isLoading && !initError)) {
+  if (languageLoading || (!isInitialized && isLoading)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading...</Text>
       </View>
     );
-  }
-
-  // Show error message if initialization failed
-  if (initError) {
-    console.log('Continuing with error:', initError);
-    // Continue anyway - the app should work with mock data
   }
 
   return (

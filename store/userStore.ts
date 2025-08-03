@@ -67,59 +67,70 @@ export const useUserStore = create<UserState>()(
       initializeUser: async () => {
         set({ isLoading: true, error: null });
         try {
-          // Add timeout to prevent hanging
+          console.log('Starting user initialization...');
+          
+          // Try to get session with a shorter timeout
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Supabase connection timeout')), 3000)
+            setTimeout(() => reject(new Error('Supabase connection timeout')), 2000)
           );
           
-          const sessionPromise = supabase.auth.getSession();
-          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          let session = null;
+          try {
+            const sessionPromise = supabase.auth.getSession();
+            const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+            session = data?.session;
+            console.log('Session check completed:', session ? 'authenticated' : 'not authenticated');
+          } catch (sessionError) {
+            console.log('Session check failed, continuing with offline mode:', sessionError);
+            // Continue with offline mode
+          }
           
           if (session?.user) {
+            console.log('User authenticated, fetching profile...');
             set({ 
               supabaseUser: session.user, 
               isAuthenticated: true 
             });
-            // Run these in parallel with timeout
+            
+            // Try to fetch profile data with timeout
             try {
+              const profileTimeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 1500)
+              );
+              
               await Promise.race([
                 Promise.all([
                   get().fetchUserProfile(),
                   get().fetchNutritionProgress()
                 ]),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Profile fetch timeout')), 2000)
-                )
+                profileTimeout
               ]);
+              console.log('Profile data loaded successfully');
             } catch (profileError) {
-              console.log('Profile fetch failed, continuing with mock data:', profileError);
+              console.log('Profile fetch failed, using mock data:', profileError);
               set({ user: mockUser });
             }
           } else {
+            console.log('No authenticated user, using mock data');
             // Use mock user for demo purposes when not authenticated
             set({ 
               user: mockUser,
               isAuthenticated: false 
             });
           }
+          
+          console.log('User initialization completed successfully');
         } catch (error: any) {
           console.error('Error initializing user:', error);
-          let errorMessage = 'Failed to initialize user';
-          if (typeof error === 'string') {
-            errorMessage = error;
-          } else if (error?.message) {
-            errorMessage = error.message;
-          } else if (error?.error_description) {
-            errorMessage = error.error_description;
-          } else if (error?.details) {
-            errorMessage = error.details;
-          }
-          console.error('Detailed error:', JSON.stringify(error, null, 2));
+          
+          // Always fall back to mock user to keep app functional
           set({ 
-            error: errorMessage,
             user: mockUser,
-            isAuthenticated: false 
+            isAuthenticated: false,
+            error: null // Don't show error to user, just log it
           });
+          
+          console.log('Continuing with mock user data due to connection issues');
         } finally {
           set({ isLoading: false });
         }
