@@ -94,7 +94,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="meals"
         options={{
-          title: t('restaurants'),
+          title: 'Restaurants',
           tabBarIcon: ({ color }) => <Utensils size={24} color={color} />,
         }}
       />

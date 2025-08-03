@@ -115,6 +115,13 @@ function RootLayoutNav() {
           }} 
         />
         <Stack.Screen 
+          name="restaurants" 
+          options={{ 
+            title: "Restaurants",
+            headerBackTitle: "Back",
+          }} 
+        />
+        <Stack.Screen 
           name="profile" 
           options={{ 
             title: t('profile'),
