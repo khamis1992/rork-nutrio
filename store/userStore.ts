@@ -69,20 +69,19 @@ export const useUserStore = create<UserState>()(
         try {
           console.log('Starting user initialization...');
           
-          // Try to get session with a shorter timeout
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Supabase connection timeout')), 2000)
-          );
+          // Always start with mock user to ensure app functionality
+          set({ user: mockUser });
           
+          // Try to get session without timeout to avoid conflicts
           let session = null;
           try {
-            const sessionPromise = supabase.auth.getSession();
-            const { data } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+            const { data } = await supabase.auth.getSession();
             session = data?.session;
             console.log('Session check completed:', session ? 'authenticated' : 'not authenticated');
           } catch (sessionError) {
             console.log('Session check failed, continuing with offline mode:', sessionError);
-            // Continue with offline mode
+            // Continue with offline mode - mock user already set
+            return;
           }
           
           if (session?.user) {
@@ -92,42 +91,31 @@ export const useUserStore = create<UserState>()(
               isAuthenticated: true 
             });
             
-            // Try to fetch profile data with timeout
+            // Try to fetch profile data without timeout
             try {
-              const profileTimeout = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Profile fetch timeout')), 1500)
-              );
-              
-              await Promise.race([
-                Promise.all([
-                  get().fetchUserProfile(),
-                  get().fetchNutritionProgress()
-                ]),
-                profileTimeout
+              await Promise.all([
+                get().fetchUserProfile(),
+                get().fetchNutritionProgress()
               ]);
               console.log('Profile data loaded successfully');
             } catch (profileError) {
-              console.log('Profile fetch failed, using mock data:', profileError);
-              set({ user: mockUser });
+              console.log('Profile fetch failed, keeping mock data:', profileError);
+              // Keep mock user data already set
             }
           } else {
             console.log('No authenticated user, using mock data');
-            // Use mock user for demo purposes when not authenticated
-            set({ 
-              user: mockUser,
-              isAuthenticated: false 
-            });
+            set({ isAuthenticated: false });
           }
           
           console.log('User initialization completed successfully');
         } catch (error: any) {
           console.error('Error initializing user:', error);
           
-          // Always fall back to mock user to keep app functional
+          // Ensure mock user is set and no error is shown
           set({ 
             user: mockUser,
             isAuthenticated: false,
-            error: null // Don't show error to user, just log it
+            error: null
           });
           
           console.log('Continuing with mock user data due to connection issues');

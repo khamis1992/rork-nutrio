@@ -18,18 +18,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       'X-Client-Info': 'nutrio-app',
     },
-    fetch: (url, options = {}) => {
-      // Add timeout to all requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-      
-      return fetch(url, {
-        ...options,
-        signal: controller.signal,
-      }).finally(() => {
-        clearTimeout(timeoutId);
-      });
-    },
   },
 });
 

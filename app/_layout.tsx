@@ -59,32 +59,20 @@ function RootLayoutNav() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const initWithTimeout = async () => {
+    const initApp = async () => {
       try {
         console.log('Starting app initialization...');
-        
-        // Set a more generous timeout for initialization
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Initialization timeout')), 3000)
-        );
-        
-        await Promise.race([
-          initializeUser(),
-          timeoutPromise
-        ]);
-        
+        await initializeUser();
         console.log('App initialization completed');
       } catch (error) {
         console.error('Initialization error:', error);
-        // Don't block the app, just log the error
         console.log('Continuing with offline mode due to initialization error');
       } finally {
-        // Always mark as initialized so the app can continue
         setIsInitialized(true);
       }
     };
 
-    initWithTimeout();
+    initApp();
   }, [initializeUser]);
 
   // Show loading screen while initializing
