@@ -1,186 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, RefreshControl, FlatList } from 'react-native';
-import { theme } from '@/constants/theme';
-import { useRestaurantsStore } from '@/store/restaurantsStore';
-import { useLanguage } from '@/store/languageStore';
-import { RestaurantCard } from '@/components/RestaurantCard';
+import React, { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  SafeAreaView,
+  ActivityIndicator,
+} from 'react-native';
+import { Stack } from 'expo-router';
 import { Search } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { useLanguage } from '@/store/languageStore';
+import { restaurants } from '@/mocks/restaurants';
+import { RestaurantCard } from '@/components/RestaurantCard';
+import { colors } from '@/constants/colors';
 
 export default function RestaurantsScreen() {
-  const { 
-    restaurants, 
-    fetchRestaurants, 
-    toggleFavorite,
-    isLoading, 
-    error 
-  } = useRestaurantsStore();
   const { t, isRTL } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Fetch restaurants when component mounts
-    fetchRestaurants();
-  }, [fetchRestaurants]);
-
-  const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await fetchRestaurants();
-    } catch (error) {
-      console.error('Error refreshing restaurants:', error);
-    } finally {
-      setRefreshing(false);
+  const filteredRestaurants = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return restaurants;
     }
-  }, [fetchRestaurants]);
-
-  // Filter restaurants by search query
-  const filteredRestaurants = restaurants.filter(restaurant => {
-    const matchesSearch = searchQuery === '' || 
-      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (restaurant.cuisine_type && restaurant.cuisine_type.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    return matchesSearch;
-  });
-
-  const handleRestaurantPress = (restaurantId: string) => {
-    router.push(`/restaurant/${restaurantId}`);
-  };
+    const query = searchQuery.toLowerCase();
+    return restaurants.filter(
+      (restaurant) =>
+        restaurant.name.toLowerCase().includes(query) ||
+        restaurant.cuisineType.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   const renderRestaurant = ({ item }: { item: typeof restaurants[0] }) => (
-    <View style={styles.restaurantItem}>
-      <RestaurantCard
-        restaurant={item}
-        onPress={() => handleRestaurantPress(item.id)}
-        onToggleFavorite={() => toggleFavorite(item.id)}
-      />
+    <RestaurantCard restaurant={item} />
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyStateTitle}>{t('noRestaurantsFound')}</Text>
+      <Text style={styles.emptyStateSubtitle}>{t('tryDifferentKeywords')}</Text>
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <Search size={20} color={theme.colors.textLight} style={styles.searchIcon} />
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={[styles.searchContainer, isRTL && styles.searchContainerRTL]}>
+        <Search 
+          size={20} 
+          color={colors.gray[400]} 
+          style={[styles.searchIcon, isRTL && styles.searchIconRTL]} 
+        />
         <TextInput
-          style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
+          style={[styles.searchInput, isRTL && styles.searchInputRTL]}
           placeholder={t('searchRestaurants')}
+          placeholderTextColor={colors.gray[400]}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor={theme.colors.textLight}
+          textAlign={isRTL ? 'right' : 'left'}
         />
       </View>
-
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('errorLoadingRestaurants')}</Text>
-          <Text style={[styles.errorSubtext, { textAlign: isRTL ? 'right' : 'left' }]}>{error}</Text>
-        </View>
-      )}
-
-      {isLoading && restaurants.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('loadingRestaurants')}</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredRestaurants}
-          renderItem={renderRestaurant}
-          keyExtractor={(item) => item.id}
-          numColumns={1}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.restaurantsContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            !isLoading ? (
-              <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('noRestaurantsFound')}</Text>
-                <Text style={[styles.emptySubtext, { textAlign: isRTL ? 'right' : 'left' }]}>{t('tryDifferentKeywords')}</Text>
-              </View>
-            ) : null
-          }
-        />
-      )}
     </View>
+  );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ title: t('restaurants') }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+          <Text style={styles.loadingText}>{t('loadingRestaurants')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ title: t('restaurants') }} />
+      
+      <FlatList
+        data={filteredRestaurants}
+        renderItem={renderRestaurant}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.gray[50],
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.gray[600],
+    fontWeight: '500' as const,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[100],
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.full,
-    marginHorizontal: theme.spacing.md,
-    marginVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    ...theme.shadows.sm,
+    backgroundColor: colors.gray[100],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
+  },
+  searchContainerRTL: {
+    flexDirection: 'row-reverse',
   },
   searchIcon: {
-    marginRight: theme.spacing.sm,
+    marginRight: 12,
+  },
+  searchIconRTL: {
+    marginRight: 0,
+    marginLeft: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: theme.typography.fontSizes.md,
-    color: theme.colors.text,
+    fontSize: 16,
+    color: colors.gray[900],
+    paddingVertical: 0,
   },
-  restaurantsContent: {
-    padding: theme.spacing.md,
+  searchInputRTL: {
+    textAlign: 'right',
   },
-  restaurantItem: {
-    marginBottom: theme.spacing.md,
-    alignItems: 'center',
+  listContent: {
+    paddingBottom: 20,
   },
-  loadingContainer: {
-    alignItems: 'center',
+  separator: {
+    height: 12,
+  },
+  emptyState: {
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: theme.spacing.xxl,
-  },
-  loadingText: {
-    fontSize: theme.typography.fontSizes.md,
-    color: theme.colors.textLight,
-  },
-  errorContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xxl,
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.md,
-    padding: theme.spacing.lg,
+    paddingHorizontal: 40,
+    paddingVertical: 60,
   },
-  errorText: {
-    fontSize: theme.typography.fontSizes.lg,
-    fontWeight: theme.typography.fontWeights.semibold,
-    color: theme.colors.error,
-    marginBottom: theme.spacing.xs,
-  },
-  errorSubtext: {
-    fontSize: theme.typography.fontSizes.sm,
-    color: theme.colors.textLight,
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: colors.gray[900],
+    marginBottom: 8,
     textAlign: 'center',
   },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xxl,
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSizes.lg,
-    fontWeight: theme.typography.fontWeights.semibold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
-  },
-  emptySubtext: {
-    fontSize: theme.typography.fontSizes.md,
-    color: theme.colors.textLight,
+  emptyStateSubtitle: {
+    fontSize: 14,
+    color: colors.gray[500],
     textAlign: 'center',
+    lineHeight: 20,
   },
 });
