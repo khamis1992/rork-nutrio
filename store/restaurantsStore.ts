@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { restaurants as mockRestaurants } from '@/mocks/restaurants';
 
 export interface Restaurant {
   id: string;
@@ -31,18 +31,16 @@ export const useRestaurantsStore = create<RestaurantsState>((set, get) => ({
   fetchRestaurants: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (error) throw error;
-
+      // Use mock data and transform to match the expected interface
       const { favoriteRestaurants } = get();
-      // Ensure rating is never null by providing a default value
-      const restaurantsWithFavorites = (data || []).map(restaurant => ({
-        ...restaurant,
-        rating: restaurant.rating ?? 0, // Default to 0 if rating is null
+      const restaurantsWithFavorites = mockRestaurants.map(restaurant => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        logo_url: restaurant.logo,
+        image_url: restaurant.image,
+        rating: restaurant.rating,
+        cuisine_type: restaurant.cuisineType,
+        delivery_time: restaurant.deliveryTime,
         isFavorite: favoriteRestaurants.has(restaurant.id),
       }));
 

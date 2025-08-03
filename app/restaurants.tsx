@@ -22,7 +22,7 @@ export default function RestaurantsScreen() {
 
   useEffect(() => {
     fetchRestaurants();
-  }, []);
+  }, [fetchRestaurants]);
 
   const filteredRestaurants = useMemo(() => {
     if (!searchQuery.trim()) {

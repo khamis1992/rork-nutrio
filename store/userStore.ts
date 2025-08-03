@@ -70,44 +70,9 @@ export const useUserStore = create<UserState>()(
           console.log('Starting user initialization...');
           
           // Always start with mock user to ensure app functionality
-          set({ user: mockUser });
+          set({ user: mockUser, isAuthenticated: false });
+          console.log('Mock user set, app ready to use');
           
-          // Try to get session without timeout to avoid conflicts
-          let session = null;
-          try {
-            const { data } = await supabase.auth.getSession();
-            session = data?.session;
-            console.log('Session check completed:', session ? 'authenticated' : 'not authenticated');
-          } catch (sessionError) {
-            console.log('Session check failed, continuing with offline mode:', sessionError);
-            // Continue with offline mode - mock user already set
-            return;
-          }
-          
-          if (session?.user) {
-            console.log('User authenticated, fetching profile...');
-            set({ 
-              supabaseUser: session.user, 
-              isAuthenticated: true 
-            });
-            
-            // Try to fetch profile data without timeout
-            try {
-              await Promise.all([
-                get().fetchUserProfile(),
-                get().fetchNutritionProgress()
-              ]);
-              console.log('Profile data loaded successfully');
-            } catch (profileError) {
-              console.log('Profile fetch failed, keeping mock data:', profileError);
-              // Keep mock user data already set
-            }
-          } else {
-            console.log('No authenticated user, using mock data');
-            set({ isAuthenticated: false });
-          }
-          
-          console.log('User initialization completed successfully');
         } catch (error: any) {
           console.error('Error initializing user:', error);
           
@@ -118,7 +83,7 @@ export const useUserStore = create<UserState>()(
             error: null
           });
           
-          console.log('Continuing with mock user data due to connection issues');
+          console.log('Continuing with mock user data');
         } finally {
           set({ isLoading: false });
         }

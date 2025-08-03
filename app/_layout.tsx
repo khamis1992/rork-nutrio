@@ -2,7 +2,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -54,9 +54,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { initializeUser, isLoading } = useUserStore();
+  const { initializeUser } = useUserStore();
   const { t, isLoading: languageLoading } = useLanguage();
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initApp = async () => {
@@ -67,16 +66,14 @@ function RootLayoutNav() {
       } catch (error) {
         console.error('Initialization error:', error);
         console.log('Continuing with offline mode due to initialization error');
-      } finally {
-        setIsInitialized(true);
       }
     };
 
     initApp();
   }, [initializeUser]);
 
-  // Show loading screen while initializing
-  if (languageLoading || (!isInitialized && isLoading)) {
+  // Show loading screen only for language loading
+  if (languageLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
         <ActivityIndicator size="large" color="#007AFF" />
