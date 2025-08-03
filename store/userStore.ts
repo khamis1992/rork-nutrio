@@ -162,7 +162,18 @@ export const useUserStore = create<UserState>()(
           } else if (error?.details) {
             errorMessage = error.details;
           }
-          console.error('Login error details:', JSON.stringify(error, null, 2));
+          
+          try {
+            const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            if (errorDetails && errorDetails !== '{}') {
+              console.error('Login error details:', errorDetails);
+            } else {
+              console.error('Login error object is empty or has no enumerable properties');
+            }
+          } catch (stringifyError) {
+            console.error('Could not stringify login error:', error);
+          }
+          
           set({ error: errorMessage });
           throw new Error(errorMessage);
         } finally {
@@ -240,7 +251,18 @@ export const useUserStore = create<UserState>()(
           } else if (error?.details) {
             errorMessage = error.details;
           }
-          console.error('Signup error details:', JSON.stringify(error, null, 2));
+          
+          try {
+            const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            if (errorDetails && errorDetails !== '{}') {
+              console.error('Signup error details:', errorDetails);
+            } else {
+              console.error('Signup error object is empty or has no enumerable properties');
+            }
+          } catch (stringifyError) {
+            console.error('Could not stringify signup error:', error);
+          }
+          
           set({ error: errorMessage });
           throw new Error(errorMessage);
         } finally {
@@ -269,7 +291,18 @@ export const useUserStore = create<UserState>()(
           } else if (error?.details) {
             errorMessage = error.details;
           }
-          console.error('Detailed error:', JSON.stringify(error, null, 2));
+          
+          try {
+            const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            if (errorDetails && errorDetails !== '{}') {
+              console.error('Logout detailed error:', errorDetails);
+            } else {
+              console.error('Logout error object is empty or has no enumerable properties');
+            }
+          } catch (stringifyError) {
+            console.error('Could not stringify logout error:', error);
+          }
+          
           set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
@@ -312,7 +345,18 @@ export const useUserStore = create<UserState>()(
           } else if (error?.details) {
             errorMessage = error.details;
           }
-          console.error('Detailed error:', JSON.stringify(error, null, 2));
+          
+          try {
+            const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+            if (errorDetails && errorDetails !== '{}') {
+              console.error('Update user detailed error:', errorDetails);
+            } else {
+              console.error('Update user error object is empty or has no enumerable properties');
+            }
+          } catch (stringifyError) {
+            console.error('Could not stringify update user error:', error);
+          }
+          
           set({ error: errorMessage });
           throw new Error(errorMessage);
         } finally {
@@ -501,7 +545,18 @@ export const useUserStore = create<UserState>()(
             } else if (error?.details) {
               errorMessage = error.details;
             }
-            console.error('Detailed error:', JSON.stringify(error, null, 2));
+            
+            try {
+              const errorDetails = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+              if (errorDetails && errorDetails !== '{}') {
+                console.error('Log nutrition detailed error:', errorDetails);
+              } else {
+                console.error('Log nutrition error object is empty or has no enumerable properties');
+              }
+            } catch (stringifyError) {
+              console.error('Could not stringify log nutrition error:', error);
+            }
+            
             throw new Error(errorMessage);
           }
         }
