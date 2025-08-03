@@ -67,15 +67,34 @@ export const useUserStore = create<UserState>()(
       initializeUser: async () => {
         set({ isLoading: true, error: null });
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Supabase connection timeout')), 3000)
+          );
+          
+          const sessionPromise = supabase.auth.getSession();
+          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
           
           if (session?.user) {
             set({ 
               supabaseUser: session.user, 
               isAuthenticated: true 
             });
-            await get().fetchUserProfile();
-            await get().fetchNutritionProgress();
+            // Run these in parallel with timeout
+            try {
+              await Promise.race([
+                Promise.all([
+                  get().fetchUserProfile(),
+                  get().fetchNutritionProgress()
+                ]),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('Profile fetch timeout')), 2000)
+                )
+              ]);
+            } catch (profileError) {
+              console.log('Profile fetch failed, continuing with mock data:', profileError);
+              set({ user: mockUser });
+            }
           } else {
             // Use mock user for demo purposes when not authenticated
             set({ 

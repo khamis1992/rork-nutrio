@@ -2,12 +2,13 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { useUserStore } from "@/store/userStore";
 import { LanguageProvider, useLanguage } from "@/store/languageStore";
+import { View, Text, ActivityIndicator } from "react-native";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -53,12 +54,46 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { initializeUser } = useUserStore();
-  const { t } = useLanguage();
+  const { initializeUser, isLoading } = useUserStore();
+  const { t, isLoading: languageLoading } = useLanguage();
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
-    initializeUser();
-  }, []);
+    const initWithTimeout = async () => {
+      try {
+        // Set a timeout for initialization
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Initialization timeout')), 5000)
+        );
+        
+        await Promise.race([
+          initializeUser(),
+          timeoutPromise
+        ]);
+      } catch (error) {
+        console.error('Initialization error:', error);
+        setInitError(error instanceof Error ? error.message : 'Initialization failed');
+      }
+    };
+
+    initWithTimeout();
+  }, [initializeUser]);
+
+  // Show loading screen while initializing
+  if (languageLoading || (isLoading && !initError)) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // Show error message if initialization failed
+  if (initError) {
+    console.log('Continuing with error:', initError);
+    // Continue anyway - the app should work with mock data
+  }
 
   return (
     <>
