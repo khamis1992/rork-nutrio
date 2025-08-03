@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useMealsStore, Meal } from '@/store/mealsStore';
+import { useLanguage } from '@/store/languageStore';
 import { MealCard } from '@/components/MealCard';
 import { Star, Clock, MapPin } from 'lucide-react-native';
 
@@ -25,6 +26,7 @@ export default function RestaurantDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const { fetchMealsByRestaurant } = useMealsStore();
+  const { t, isRTL } = useLanguage();
 
   useEffect(() => {
     const fetchRestaurantData = async () => {
@@ -72,7 +74,7 @@ export default function RestaurantDetailsScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading restaurant details...</Text>
+        <Text style={[styles.loadingText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('loadingRestaurantDetails')}</Text>
       </View>
     );
   }
@@ -80,8 +82,8 @@ export default function RestaurantDetailsScreen() {
   if (error || !restaurant) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          {error || 'Restaurant not found'}
+        <Text style={[styles.errorText, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {error || t('restaurantNotFound')}
         </Text>
       </View>
     );
@@ -103,7 +105,7 @@ export default function RestaurantDetailsScreen() {
       <Stack.Screen 
         options={{ 
           title: restaurant.name || 'Restaurant',
-          headerBackTitle: "Back",
+          headerBackTitle: t('back'),
         }} 
       />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -143,8 +145,8 @@ export default function RestaurantDetailsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.description}>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('about')}</Text>
+            <Text style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}>
               Experience the finest {restaurant.cuisine_type?.toLowerCase() || 'cuisine'} with fresh, 
               locally-sourced ingredients. Our chefs prepare each dish with passion and attention 
               to detail, ensuring every meal is a memorable experience.
@@ -152,7 +154,7 @@ export default function RestaurantDetailsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Available Meals ({meals.length})</Text>
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('availableMeals')} ({meals.length})</Text>
             {meals.length > 0 ? (
               <FlatList
                 data={meals}
@@ -162,16 +164,16 @@ export default function RestaurantDetailsScreen() {
                 showsVerticalScrollIndicator={false}
               />
             ) : (
-              <Text style={styles.noMealsText}>No meals available at this restaurant.</Text>
+              <Text style={[styles.noMealsText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('noMealsAvailable')}</Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Location & Hours</Text>
-            <Text style={styles.description}>
-              Open daily from 11:00 AM to 10:00 PM{'\n'}
-              Delivery available in your area{'\n'}
-              {restaurant.delivery_time && `Average delivery time: ${restaurant.delivery_time}`}
+            <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t('locationAndHours')}</Text>
+            <Text style={[styles.description, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('openDaily')}{'\n'}
+              {t('deliveryAvailable')}{'\n'}
+              {restaurant.delivery_time && `${t('averageDeliveryTime')} ${restaurant.delivery_time}`}
             </Text>
           </View>
         </View>

@@ -54,6 +54,16 @@ export const translations = {
     loadingRestaurants: 'Loading restaurants...',
     noRestaurantsFound: 'No restaurants found',
     tryDifferentKeywords: 'Try searching with different keywords',
+    loadingRestaurantDetails: 'Loading restaurant details...',
+    restaurantNotFound: 'Restaurant not found',
+    about: 'About',
+    availableMeals: 'Available Meals',
+    noMealsAvailable: 'No meals available at this restaurant.',
+    locationAndHours: 'Location & Hours',
+    openDaily: 'Open daily from 11:00 AM to 10:00 PM',
+    deliveryAvailable: 'Delivery available in your area',
+    averageDeliveryTime: 'Average delivery time:',
+    back: 'Back',
     
     // Common
     loading: 'Loading...',
@@ -116,6 +126,16 @@ export const translations = {
     loadingRestaurants: 'جاري تحميل المطاعم...',
     noRestaurantsFound: 'لم يتم العثور على مطاعم',
     tryDifferentKeywords: 'جرب البحث بكلمات مختلفة',
+    loadingRestaurantDetails: 'جاري تحميل تفاصيل المطعم...',
+    restaurantNotFound: 'المطعم غير موجود',
+    about: 'حول',
+    availableMeals: 'الوجبات المتاحة',
+    noMealsAvailable: 'لا توجد وجبات متاحة في هذا المطعم.',
+    locationAndHours: 'الموقع وساعات العمل',
+    openDaily: 'مفتوح يومياً من 11:00 صباحاً إلى 10:00 مساءً',
+    deliveryAvailable: 'التوصيل متاح في منطقتك',
+    averageDeliveryTime: 'متوسط وقت التوصيل:',
+    back: 'رجوع',
     
     // Common
     loading: 'جاري التحميل...',
