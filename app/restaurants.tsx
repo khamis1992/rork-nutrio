@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, RefreshControl, FlatList } from 'react-native';
 import { theme } from '@/constants/theme';
 import { useRestaurantsStore } from '@/store/restaurantsStore';
+import { useLanguage } from '@/store/languageStore';
 import { RestaurantCard } from '@/components/RestaurantCard';
 import { Search } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -14,6 +15,7 @@ export default function RestaurantsScreen() {
     isLoading, 
     error 
   } = useRestaurantsStore();
+  const { t, isRTL } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -61,8 +63,8 @@ export default function RestaurantsScreen() {
       <View style={styles.searchContainer}>
         <Search size={20} color={theme.colors.textLight} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
-          placeholder="Search restaurants or cuisine types"
+          style={[styles.searchInput, { textAlign: isRTL ? 'right' : 'left' }]}
+          placeholder={t('searchRestaurants')}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={theme.colors.textLight}
@@ -71,14 +73,14 @@ export default function RestaurantsScreen() {
 
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error loading restaurants</Text>
-          <Text style={styles.errorSubtext}>{error}</Text>
+          <Text style={[styles.errorText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('errorLoadingRestaurants')}</Text>
+          <Text style={[styles.errorSubtext, { textAlign: isRTL ? 'right' : 'left' }]}>{error}</Text>
         </View>
       )}
 
       {isLoading && restaurants.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading restaurants...</Text>
+          <Text style={[styles.loadingText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('loadingRestaurants')}</Text>
         </View>
       ) : (
         <FlatList
@@ -94,8 +96,8 @@ export default function RestaurantsScreen() {
           ListEmptyComponent={
             !isLoading ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No restaurants found</Text>
-                <Text style={styles.emptySubtext}>Try searching with different keywords</Text>
+                <Text style={[styles.emptyText, { textAlign: isRTL ? 'right' : 'left' }]}>{t('noRestaurantsFound')}</Text>
+                <Text style={[styles.emptySubtext, { textAlign: isRTL ? 'right' : 'left' }]}>{t('tryDifferentKeywords')}</Text>
               </View>
             ) : null
           }
@@ -128,7 +130,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: theme.typography.fontSizes.md,
     color: theme.colors.text,
-    textAlign: 'left',
   },
   restaurantsContent: {
     padding: theme.spacing.md,

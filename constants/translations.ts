@@ -48,6 +48,13 @@ export const translations = {
     subscriptionCanceled: 'Your subscription has been canceled',
     failedToCancelSubscription: 'Failed to cancel subscription',
     
+    // Restaurants
+    searchRestaurants: 'Search restaurants or cuisine types',
+    errorLoadingRestaurants: 'Error loading restaurants',
+    loadingRestaurants: 'Loading restaurants...',
+    noRestaurantsFound: 'No restaurants found',
+    tryDifferentKeywords: 'Try searching with different keywords',
+    
     // Common
     loading: 'Loading...',
     retry: 'Retry',
@@ -102,6 +109,13 @@ export const translations = {
     error: 'خطأ',
     subscriptionCanceled: 'تم إلغاء اشتراكك',
     failedToCancelSubscription: 'فشل في إلغاء الاشتراك',
+    
+    // Restaurants
+    searchRestaurants: 'البحث في المطاعم أو أنواع المأكولات',
+    errorLoadingRestaurants: 'خطأ في تحميل المطاعم',
+    loadingRestaurants: 'جاري تحميل المطاعم...',
+    noRestaurantsFound: 'لم يتم العثور على مطاعم',
+    tryDifferentKeywords: 'جرب البحث بكلمات مختلفة',
     
     // Common
     loading: 'جاري التحميل...',
